@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>🎯 VELOX — Painel de Qualidade</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{--bg:#0f1117;--surface:#181c27;--card:#1e2336;--border:#2a3050;--accent:#e83a2f;--soft:#ff6b5e;--green:#22c55e;--red:#ef4444;--yellow:#eab308;--blue:#3b82f6;--purple:#a855f7;--cyan:#06b6d4;--text:#e8eaf0;--muted:#7c839e;--subtle:#2a3050;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;}
+::-webkit-scrollbar{width:6px;height:6px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+.fade-up{animation:fadeUp .4s ease both;}
+
+/* header */
+.header{background:linear-gradient(135deg,#0f1117 0%,#1a0808 55%,#0f1117 100%);border-bottom:1px solid var(--border);padding:18px 32px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.htitle{font-size:21px;font-weight:800;background:linear-gradient(90deg,var(--text),var(--soft));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.hsub{color:var(--muted);font-size:11px;margin-top:3px;font-family:'JetBrains Mono',monospace;}
+.hright{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+
+/* body */
+.body{padding:20px 32px;}
+
+/* filter bar */
+.filter-bar{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 18px;margin-bottom:20px;display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;}
+.fg{display:flex;flex-direction:column;gap:4px;min-width:130px;}
+.fl{font-size:9px;font-weight:700;color:var(--muted);letter-spacing:1.4px;text-transform:uppercase;}
+.btn-apply{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 20px;font-size:12px;font-weight:700;font-family:'Syne',sans-serif;cursor:pointer;height:34px;white-space:nowrap;}
+.btn-apply:hover{opacity:.88;}
+
+/* section title */
+.st{display:flex;align-items:center;gap:8px;font-size:10px;font-weight:700;letter-spacing:2px;color:var(--accent);text-transform:uppercase;margin:28px 0 10px;}
+.st::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent);}
+
+/* kpi cards */
+.cg{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:11px;}
+.kc{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:14px 16px;display:flex;flex-direction:column;gap:4px;}
+.kl{font-size:9px;font-weight:700;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase;}
+.kv{font-size:26px;font-weight:800;font-family:'JetBrains Mono',monospace;line-height:1;}
+.kb{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:5px;margin-top:3px;font-family:'JetBrains Mono',monospace;}
+
+/* charts */
+.chart-row{display:grid;gap:14px;margin-top:14px;}
+.c2{grid-template-columns:1fr 1fr;}
+.c3{grid-template-columns:1fr 1fr 1fr;}
+.c1{grid-template-columns:1fr;}
+.cbox{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:14px 16px;}
+.ctitle{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;}
+
+/* table */
+.tw{background:var(--card);border:1px solid var(--border);border-radius:13px;overflow:hidden;overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:12px;font-family:'JetBrains Mono',monospace;}
+thead th{padding:8px 11px;text-align:left;font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:0;white-space:nowrap;}
+tbody td{padding:7px 11px;border-bottom:1px solid #ffffff07;vertical-align:middle;}
+tbody tr:nth-child(even){background:#ffffff03;}
+tbody tr:hover td{background:#ffffff06;}
+
+/* pill */
+.pill{display:inline-flex;align-items:center;gap:3px;border-radius:99px;padding:2px 8px;font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace;border:1px solid;}
+
+/* inputs */
+input[type=text],input[type=date],select,textarea{background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:7px 11px;font-size:12px;font-family:'JetBrains Mono',monospace;outline:none;transition:border-color .2s;}
+input[type=text]:focus,input[type=date]:focus,select:focus,textarea:focus{border-color:var(--accent);}
+select{cursor:pointer;}textarea{resize:vertical;width:100%;}
+input[type=checkbox]{cursor:pointer;accent-color:var(--accent);}
+
+/* multiselect custom */
+.ms-wrap{background:var(--card);border:1px solid var(--border);border-radius:8px;max-height:130px;overflow-y:auto;padding:6px 8px;min-width:150px;}
+.ms-item{display:flex;align-items:center;gap:6px;padding:3px 2px;font-size:11px;font-family:'JetBrains Mono',monospace;cursor:pointer;color:var(--text);white-space:nowrap;}
+.ms-item:hover{color:var(--soft);}
+
+/* buttons */
+.btn{background:var(--accent);color:#fff;border:none;border-radius:9px;padding:9px 24px;font-size:12px;font-weight:700;font-family:'Syne',sans-serif;cursor:pointer;transition:opacity .15s;}
+.btn:hover{opacity:.88;}.btn:disabled{opacity:.4;cursor:not-allowed;}
+.bsec{background:var(--surface);color:var(--muted);border:1px solid var(--border);border-radius:9px;padding:8px 15px;font-size:12px;font-weight:700;font-family:'Syne',sans-serif;cursor:pointer;transition:all .2s;}
+.bsec:hover{border-color:var(--muted);color:var(--text);}
+.bsm{padding:5px 12px;font-size:11px;}
+
+/* tabs */
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:18px;overflow-x:auto;flex-wrap:nowrap;}
+.tab{padding:8px 14px;font-size:12px;font-weight:700;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;font-family:'Syne',sans-serif;white-space:nowrap;}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab:hover{color:var(--text);}
+
+/* alerts */
+.alerr{background:#2a0e0e;border:1px solid #5a1a1a;border-radius:9px;padding:11px 14px;color:#ff8080;font-size:12px;font-family:'JetBrains Mono',monospace;margin:10px 0;}
+.alok{background:#0e2a1a;border:1px solid #1a5a30;border-radius:9px;padding:11px 14px;color:#80ffaa;font-size:12px;font-family:'JetBrains Mono',monospace;margin:10px 0;}
+.alinfo{background:#0e1a2a;border:1px solid #1a3050;border-radius:9px;padding:11px 14px;color:#80aaff;font-size:12px;font-family:'JetBrains Mono',monospace;margin:10px 0;}
+
+/* spinner */
+.sp{display:inline-block;width:14px;height:14px;border:2px solid var(--border);border-top:2px solid var(--accent);border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle;margin-right:6px;}
+
+/* misc */
+.sep{border:none;border-top:1px solid var(--border);margin:20px 0;}
+.mini-bar{height:4px;border-radius:2px;background:var(--subtle);overflow:hidden;flex:1;min-width:36px;}
+.mbf{height:100%;border-radius:2px;transition:width .5s ease;}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.caption{font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-top:6px;}
+
+@media(max-width:720px){.header,.body{padding:12px 14px;}.c2,.c3{grid-template-columns:1fr;}.cg{grid-template-columns:1fr 1fr;}.filter-bar{gap:10px;}}
+</style>
+</head>
+<body>
+
+<!-- ═══ SETUP ═══ -->
+<div id="setup-screen">
+  <div class="header">
+    <div><div class="htitle">🎯 VELOX — Painel de Qualidade</div><div class="hsub">Configuração inicial</div></div>
+  </div>
+  <div class="body" style="max-width:660px">
+    <div class="st">🔑 Credenciais da Service Account</div>
+    <p style="font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:10px">Cole o JSON completo da sua Service Account do Google Cloud. Fica salvo apenas no <strong style="color:var(--text)">localStorage do seu navegador</strong>.</p>
+    <textarea id="inp-sa" rows="8" placeholder='{"type":"service_account","project_id":"...","private_key":"-----BEGIN PRIVATE KEY-----\n...","client_email":"...@....iam.gserviceaccount.com",...}'></textarea>
+    <div class="st" style="margin-top:22px">📋 IDs das planilhas de índice</div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div class="fg"><label class="fl">Índice Qualidade (qual_index_sheet_id)</label><input type="text" id="inp-qual" placeholder="ID ou URL completa"/></div>
+      <div class="fg"><label class="fl">Índice Produção (prod_index_sheet_id)</label><input type="text" id="inp-prod" placeholder="ID ou URL completa"/></div>
+    </div>
+    <div id="setup-error"></div>
+    <div class="row" style="margin-top:18px">
+      <button class="btn" id="btn-load" onclick="startLoad()">▶ Carregar dados</button>
+      <span id="setup-sp" style="display:none"><span class="sp"></span><span style="color:var(--muted);font-size:12px">Autenticando e lendo planilhas…</span></span>
+    </div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:11px;padding:14px 18px;margin-top:22px">
+      <div style="font-size:9px;font-weight:700;color:var(--muted);letter-spacing:1px;margin-bottom:8px">💡 INSTRUÇÕES</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.9">
+        1. Baixe o JSON no <strong style="color:var(--text)">Google Cloud Console → IAM → Service Accounts</strong><br>
+        2. A service account precisa ser <strong style="color:var(--text)">Viewer</strong> nas planilhas<br>
+        3. Cole o JSON + IDs e clique em Carregar — credenciais ficam salvas no localStorage
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ DASHBOARD ═══ -->
+<div id="dashboard" style="display:none">
+  <div class="header">
+    <div style="flex:1"><div class="htitle">🎯 VELOX — Painel de Qualidade</div><div class="hsub" id="dash-sub">carregando…</div></div>
+    <div class="hright">
+      <button class="bsec bsm" onclick="showSetup()">⚙ Reconfigurar</button>
+      <button class="btn bsm" id="btn-refresh" onclick="refreshData()">↻ Atualizar</button>
+    </div>
+  </div>
+
+  <!-- FILTER BAR -->
+  <div class="body">
+    <div class="filter-bar">
+      <div class="fg">
+        <label class="fl">Meses</label>
+        <div class="ms-wrap" id="ms-meses" style="min-width:160px"></div>
+      </div>
+      <div class="fg">
+        <label class="fl">Data início</label>
+        <input type="date" id="f-dini" style="width:140px"/>
+      </div>
+      <div class="fg">
+        <label class="fl">Data fim</label>
+        <input type="date" id="f-dfim" style="width:140px"/>
+      </div>
+      <div class="fg">
+        <label class="fl">Unidades</label>
+        <div class="ms-wrap" id="ms-unids" style="min-width:150px"></div>
+      </div>
+      <div class="fg">
+        <label class="fl">Vistoriadores</label>
+        <div class="ms-wrap" id="ms-vists" style="min-width:160px"></div>
+      </div>
+      <div class="fg">
+        <label class="fl">Perfil</label>
+        <select id="f-perfil" style="width:110px">
+          <option value="Todos">Todos</option>
+          <option value="Novatos">Novatos</option>
+          <option value="Veteranos">Veteranos</option>
+        </select>
+      </div>
+      <button class="btn-apply" onclick="applyFilters()">▶ Aplicar</button>
+    </div>
+
+    <div id="dash-error"></div>
+    <div id="dash-loading" style="display:none;margin-bottom:12px"><span class="sp"></span><span style="color:var(--muted);font-size:12px">Atualizando…</span></div>
+
+    <!-- TABS -->
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('kpi')">📊 KPIs</div>
+      <div class="tab" onclick="switchTab('graficos')">📈 Gráficos</div>
+      <div class="tab" onclick="switchTab('vistoriador')">👷 Por Vistoriador</div>
+      <div class="tab" onclick="switchTab('rankings')">🏁 Rankings</div>
+      <div class="tab" onclick="switchTab('tendencia')">📐 Tendência</div>
+      <div class="tab" onclick="switchTab('detalhe')">🧾 Detalhamento</div>
+      <div class="tab" onclick="switchTab('fraude')">🚨 Fraude</div>
+      <div class="tab" onclick="switchTab('historico')">📚 Histórico</div>
+    </div>
+
+    <!-- TAB: KPIs -->
+    <div id="tab-kpi" class="fade-up">
+      <div class="st">📊 Indicadores do período selecionado</div>
+      <div class="cg" id="kpi-cards"></div>
+      <div class="st" style="margin-top:24px">⏱️ Hoje vs Ontem</div>
+      <div id="hoje-ontem"></div>
+    </div>
+
+    <!-- TAB: GRÁFICOS -->
+    <div id="tab-graficos" style="display:none">
+      <div class="st">🏙️ Erros por Unidade</div>
+      <div class="chart-row c2">
+        <div class="cbox"><div class="ctitle">Total de erros</div><canvas id="ch-unid-total" height="220"></canvas></div>
+        <div class="cbox"><div class="ctitle">Grave + Gravíssimo</div><canvas id="ch-unid-gg" height="220"></canvas></div>
+      </div>
+      <div class="st">🧲 Erros por Gravidade</div>
+      <div class="chart-row c2">
+        <div class="cbox"><div class="ctitle">Distribuição por gravidade</div><canvas id="ch-grav" height="200"></canvas></div>
+        <div class="cbox"><div class="ctitle">📅 Erros por dia da semana</div><canvas id="ch-dow" height="200"></canvas></div>
+      </div>
+      <div class="st">🥇 Top 5 Erros por Gravidade</div>
+      <div class="chart-row c2">
+        <div class="cbox"><div class="ctitle">Top 5 — GRAVE</div><canvas id="ch-top-grave" height="200"></canvas></div>
+        <div class="cbox"><div class="ctitle">Top 5 — GRAVÍSSIMO</div><canvas id="ch-top-gravi" height="200"></canvas></div>
+      </div>
+      <div class="st">📈 Pareto de Erros</div>
+      <div class="chart-row c1">
+        <div class="cbox"><canvas id="ch-pareto" height="180"></canvas></div>
+      </div>
+      <div class="st">🗺️ Heatmap Unidade × Gravidade</div>
+      <div id="heatmap-box" class="tw" style="margin-top:4px"></div>
+      <div class="st">⚖️ Calibração por Analista (% GG)</div>
+      <div class="chart-row c1">
+        <div class="cbox"><canvas id="ch-analista" height="160"></canvas></div>
+      </div>
+    </div>
+
+    <!-- TAB: POR VISTORIADOR -->
+    <div id="tab-vistoriador" style="display:none">
+      <div class="st">📐 % de erro por vistoriador</div>
+      <div style="font-size:10px;color:var(--muted);margin-bottom:8px">🟢 ≤3,5%  ·  🟡 ≤4,0%  ·  🔴 &gt;4,0%  |  Meta GG 1,5%</div>
+      <div class="tw" id="tbl-vist"></div>
+      <div style="margin-top:8px;display:flex;gap:8px">
+        <button class="bsec bsm" onclick="exportCSV()">⬇ Exportar CSV — Vistoriadores</button>
+        <button class="bsec bsm" onclick="exportTable('tbl-reinc','velox_reincidencia.csv')">⬇ Exportar CSV — Reincidência</button>
+      </div>
+      <div class="st" style="margin-top:24px">♻️ Reincidência por Vistoriador (≥3 vezes mesmo erro)</div>
+      <div class="tw" id="tbl-reinc"></div>
+    </div>
+
+    <!-- TAB: RANKINGS -->
+    <div id="tab-rankings" style="display:none">
+      <div class="chart-row c2" style="margin-top:4px">
+        <div>
+          <div class="st" style="color:var(--green)">🏆 Top 5 Melhores</div>
+          <div class="tw" id="tbl-best"></div>
+        </div>
+        <div>
+          <div class="st" style="color:var(--red)">⚠️ Top 5 Piores</div>
+          <div class="tw" id="tbl-worst"></div>
+        </div>
+      </div>
+      <div class="sep"></div>
+      <div class="st">📊 Comparativo atual × mesmo período mês anterior</div>
+      <div class="caption" id="comp-cap"></div>
+      <div class="tw" style="margin-top:8px" id="tbl-comp"></div>
+      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="bsec bsm" onclick="exportTable('tbl-best','velox_top5_melhores.csv')">⬇ Top 5 Melhores</button>
+        <button class="bsec bsm" onclick="exportTable('tbl-worst','velox_top5_piores.csv')">⬇ Top 5 Piores</button>
+        <button class="bsec bsm" onclick="exportTable('tbl-comp','velox_comparativo.csv')">⬇ Comparativo</button>
+        <button class="bsec bsm" onclick="exportTable('tbl-semanal','velox_semanal.csv')">⬇ Semanal</button>
+      </div>
+      <div class="sep"></div>
+      <div class="st">🔵 Comparativo Semanal por Vistoriador</div>
+      <div class="tw" id="tbl-semanal"></div>
+    </div>
+
+    <!-- TAB: TENDÊNCIA -->
+    <div id="tab-tendencia" style="display:none">
+      <div class="st">📈 Tendência de erros — projeção até fim do mês</div>
+      <div class="tw" id="tbl-tend"></div>
+      <div style="margin-top:8px"><button class="bsec bsm" onclick="exportTable('tbl-tend','velox_tendencia.csv')">⬇ Exportar CSV</button></div>
+    </div>
+
+    <!-- TAB: DETALHAMENTO -->
+    <div id="tab-detalhe" style="display:none">
+      <div class="st">🧾 Detalhamento — linhas da base</div>
+      <div class="filter-bar" style="margin-bottom:12px">
+        <div class="fg"><label class="fl">Placa</label><input type="text" id="det-placa" placeholder="contém…" style="width:110px"/></div>
+        <div class="fg"><label class="fl">Erro</label><select id="det-erro" style="width:140px"></select></div>
+        <div class="fg"><label class="fl">Gravidade</label><select id="det-grav" style="width:120px"></select></div>
+        <div class="fg"><label class="fl">Analista</label><select id="det-analista" style="width:130px"></select></div>
+        <button class="btn-apply" onclick="renderDetalhe()">▶ Filtrar</button>
+      </div>
+      <div class="tw" id="tbl-detalhe"></div>
+      <div style="margin-top:8px"><button class="bsec bsm" onclick="exportTable('tbl-detalhe','velox_detalhamento.csv')">⬇ Exportar CSV</button></div>
+    </div>
+
+    <!-- TAB: FRAUDE -->
+    <div id="tab-fraude" style="display:none">
+      <div class="st">🚨 Tentativa de Fraude — Detalhamento</div>
+      <div id="fraude-content"></div>
+      <div style="margin-top:8px"><button class="bsec bsm" onclick="exportTable('fraude-content','velox_fraudes.csv')">⬇ Exportar CSV</button></div>
+    </div>
+
+    <!-- TAB: HISTÓRICO -->
+    <div id="tab-historico" style="display:none">
+      <div class="st">📚 Histórico — quem não bateu a meta</div>
+      <div class="row" style="margin-bottom:12px">
+        <span style="font-size:11px;color:var(--muted)">Critério:</span>
+        <button class="bsec bsm" id="crit-total" onclick="setCrit('total')">%Erro &gt; 3,5%</button>
+        <button class="bsec bsm" id="crit-any" onclick="setCrit('any')">Qualquer meta (GG incl.)</button>
+      </div>
+      <div class="tw" id="tbl-hist"></div>
+      <div style="margin-top:8px"><button class="bsec bsm" onclick="exportTable('tbl-hist','velox_historico.csv')">⬇ Exportar CSV</button></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// ⚙️ CONFIGURAÇÃO FIXA (preencha aqui para o usuário final não precisar configurar)
+// Deixe em branco ("") para usar a tela de login manual
+// ═══════════════════════════════════════════════
+const FIXED_SA_JSON   = "";   // Cole aqui o conteúdo do JSON da service account (string JSON)
+const FIXED_QUAL_ID   = "";   // ID ou URL da planilha índice de qualidade
+const FIXED_PROD_ID   = "";   // ID ou URL da planilha índice de produção
+// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════
+// CONSTANTS & STATE
+// ═══════════════════════════════════════════════
+const META_ERRO=3.5,META_GG=1.5,TOL=0.5;
+// Normaliza string removendo acentos (igual _strip_accents do Python)
+function stripAcc(s){return String(s||'').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim();}
+// isGG: aceita GRAVE, GRAVISSIMO, GRAVÍSSIMO e variações com acento
+function isGG(g){const n=stripAcc(g);return n==='GRAVE'||n==='GRAVISSIMO'||n.startsWith('GRAVIS');}
+const DOW=["Seg","Ter","Qua","Qui","Sex","Sáb","Dom"];
+const COLORS=['#e83a2f','#f5a623','#22c55e','#3b82f6','#a855f7','#06b6d4','#f97316','#84cc16','#ec4899','#6366f1'];
+
+let G={qualRows:[],prodRows:[],yms:[]};
+let VIEW={qualRows:[],prodRows:[]};   // filtered view
+let currentCrit='total';
+let _charts={};
+let _tok=null;
+
+// ═══════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════
+const up=x=>x?String(x).toUpperCase().trim():'';
+const isYes=v=>['S','SIM','Y','YES','TRUE','1'].includes(String(v).trim().toUpperCase());
+function fmtP(v){return(v==null||isNaN(v))?'—':v.toFixed(1).replace('.',',')+'\%';}
+function fmtN(v){return(v==null||isNaN(v))?'—':String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g,'.');}
+function fmtDate(d){return d?d.toLocaleDateString('pt-BR'):'—';}
+function farol(pct,gg=false){if(pct==null||isNaN(pct))return'—';const m=gg?META_GG:META_ERRO;return pct<=m?'🟢':pct<=m+TOL?'🟡':'🔴';}
+function fc(e){return e==='🟢'?'#22c55e':e==='🟡'?'#eab308':e==='🔴'?'#ef4444':'#7c839e';}
+function pill(t,c){return`<span class="pill" style="color:${c};border-color:${c}44;background:${c}18">${t}</span>`;}
+function extractId(s){const m=String(s).match(/\/d\/([a-zA-Z0-9-_]+)/);return m?m[1]:(/^[A-Za-z0-9-_]{20,}$/.test(s.trim())?s.trim():null);}
+function toYM(d){return d?`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`:null;}
+function dateStr(d){return d?`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`:'';} 
+
+function parseDate(x){
+  if(x===''||x==null)return null;
+  if(typeof x==='number'){const d=new Date(Math.round((x-25569)*86400*1000));return isNaN(d)?null:d;}
+  const s=String(x).trim();let m;
+  if((m=s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/)))return new Date(+m[3],+m[2]-1,+m[1]);
+  if((m=s.match(/^(\d{4})-(\d{2})-(\d{2})$/)))return new Date(+m[1],+m[2]-1,+m[3]);
+  const d=new Date(s);return isNaN(d)?null:d;
+}
+
+// business days (simplified)
+function bizDays(d1,d2){
+  if(!d1||!d2||d1>d2)return 0;
+  let count=0,cur=new Date(d1);
+  while(cur<=d2){const dow=cur.getDay();if(dow!==0&&dow!==6)count++;cur.setDate(cur.getDate()+1);}
+  return count;
+}
+
+// ═══════════════════════════════════════════════
+// GOOGLE AUTH
+// ═══════════════════════════════════════════════
+async function getToken(sa){
+  const now=Math.floor(Date.now()/1000);
+  if(_tok&&_tok.exp>now+60)return _tok.tok;
+  const b64u=s=>btoa(s).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
+  const hdr=b64u(JSON.stringify({alg:'RS256',typ:'JWT'}));
+  const clm=b64u(JSON.stringify({iss:sa.client_email,scope:'https://www.googleapis.com/auth/spreadsheets.readonly https://www.googleapis.com/auth/drive.readonly',aud:'https://oauth2.googleapis.com/token',exp:now+3600,iat:now}));
+  const msg=`${hdr}.${clm}`;
+  const pem=sa.private_key.replace(/-----BEGIN PRIVATE KEY-----/,'').replace(/-----END PRIVATE KEY-----/,'').replace(/\s+/g,'');
+  const kb=Uint8Array.from(atob(pem),c=>c.charCodeAt(0));
+  const key=await crypto.subtle.importKey('pkcs8',kb.buffer,{name:'RSASSA-PKCS1-v1_5',hash:'SHA-256'},false,['sign']);
+  const sb=await crypto.subtle.sign('RSASSA-PKCS1-v1_5',key,new TextEncoder().encode(msg));
+  const sig=btoa(String.fromCharCode(...new Uint8Array(sb))).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
+  const jwt=`${msg}.${sig}`;
+  const r=await fetch('https://oauth2.googleapis.com/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:`grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${jwt}`});
+  const d=await r.json();
+  if(!d.access_token)throw new Error('Token falhou: '+(d.error_description||JSON.stringify(d)));
+  _tok={tok:d.access_token,exp:now+3600};return _tok.tok;
+}
+
+async function shGet(token,id,range){
+  const url=`https://sheets.googleapis.com/v4/spreadsheets/${id}/values/${encodeURIComponent(range)}`;
+  const r=await fetch(url,{headers:{Authorization:`Bearer ${token}`}});
+  const d=await r.json();
+  if(d.error)throw new Error(`Sheets API: ${d.error.message} (${id})`);
+  const[hdrs,...rows]=d.values||[];if(!hdrs)return[];
+  return rows.map(row=>Object.fromEntries(hdrs.map((h,i)=>[h.trim().toUpperCase(),row[i]??''])));
+}
+async function firstSheet(token,id){
+  const r=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${id}?fields=sheets.properties.title`,{headers:{Authorization:`Bearer ${token}`}});
+  const d=await r.json();return d.sheets?.[0]?.properties?.title||'Sheet1';
+}
+
+// ═══════════════════════════════════════════════
+// DATA BUILD
+// ═══════════════════════════════════════════════
+function buildVist(qRows,pRows){
+  const eM={},eGM={},vM={},rM={},uM={};
+  qRows.forEach(r=>{const v=up(r.VISTORIADOR);if(!v)return;eM[v]=(eM[v]||0)+1;if(isGG(r.GRAVIDADE))eGM[v]=(eGM[v]||0)+1;if(r.UNIDADE&&!uM[v])uM[v]=up(r.UNIDADE);});
+  pRows.forEach(r=>{const v=up(r.VISTORIADOR);if(!v)return;vM[v]=(vM[v]||0)+1;if(r.IS_REV==1||r.IS_REV==='1')rM[v]=(rM[v]||0)+1;if(r.UNIDADE)uM[v]=up(r.UNIDADE);});
+  const all=new Set([...Object.keys(eM),...Object.keys(vM)]);
+  return Array.from(all).map(v=>{
+    const e=eM[v]||0,eg=eGM[v]||0,vs=vM[v]||0,rv=rM[v]||0,lq=vs-rv,den=vs||null;
+    return{v,cidade:uM[v]||'',vist:vs,rev:rv,liq:lq,erros:e,errosGG:eg,pE:den?(e/den)*100:null,pGG:den?(eg/den)*100:null};
+  }).filter(r=>r.vist>0||r.erros>0).sort((a,b)=>(b.pE??-1)-(a.pE??-1));
+}
+
+// ═══════════════════════════════════════════════
+// PERSIST & INIT
+// ═══════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded',()=>{
+  // Se credenciais fixas estão configuradas, carrega automaticamente sem tela de setup
+  if(FIXED_SA_JSON&&FIXED_QUAL_ID&&FIXED_PROD_ID){
+    try{
+      const sa=JSON.parse(FIXED_SA_JSON);
+      document.getElementById('setup-screen').style.display='none';
+      document.getElementById('dashboard').style.display='';
+      document.getElementById('dash-sub').textContent='Carregando dados…';
+      fetchAll(sa,FIXED_QUAL_ID,FIXED_PROD_ID)
+        .then(()=>{initFilters();applyFilters();})
+        .catch(e=>{document.getElementById('dash-error').innerHTML=`<div class="alerr">❌ ${e.message}</div>`;});
+    }catch(e){console.error('Credenciais fixas inválidas:',e);}
+    return;
+  }
+  // Caso contrário, tenta recuperar do localStorage
+  try{const s=localStorage.getItem('velox_cfg');if(s){const c=JSON.parse(s);if(c.sa)document.getElementById('inp-sa').value=JSON.stringify(c.sa,null,2);if(c.q)document.getElementById('inp-qual').value=c.q;if(c.p)document.getElementById('inp-prod').value=c.p;}}catch(e){}
+});
+
+// ═══════════════════════════════════════════════
+// LOAD
+// ═══════════════════════════════════════════════
+async function startLoad(){
+  const saRaw=document.getElementById('inp-sa').value.trim(),qId=document.getElementById('inp-qual').value.trim(),pId=document.getElementById('inp-prod').value.trim();
+  const errEl=document.getElementById('setup-error');errEl.innerHTML='';
+  let sa;try{sa=JSON.parse(saRaw);}catch{errEl.innerHTML='<div class="alerr">❌ JSON da Service Account inválido.</div>';return;}
+  if(!qId||!pId){errEl.innerHTML='<div class="alerr">❌ Preencha os IDs das planilhas.</div>';return;}
+  document.getElementById('btn-load').disabled=true;document.getElementById('setup-sp').style.display='';
+  try{await fetchAll(sa,qId,pId);localStorage.setItem('velox_cfg',JSON.stringify({sa,q:qId,p:pId}));document.getElementById('setup-screen').style.display='none';document.getElementById('dashboard').style.display='';initFilters();applyFilters();}
+  catch(e){errEl.innerHTML=`<div class="alerr">❌ ${e.message}</div>`;}
+  finally{document.getElementById('btn-load').disabled=false;document.getElementById('setup-sp').style.display='none';}
+}
+
+async function refreshData(){
+  document.getElementById('dash-loading').style.display='';document.getElementById('btn-refresh').disabled=true;
+  try{const c=JSON.parse(localStorage.getItem('velox_cfg')||'{}');_tok=null;await fetchAll(c.sa,c.q,c.p);initFilters();applyFilters();}
+  catch(e){document.getElementById('dash-error').innerHTML=`<div class="alerr">❌ ${e.message}</div>`;}
+  finally{document.getElementById('dash-loading').style.display='none';document.getElementById('btn-refresh').disabled=false;}
+}
+
+async function fetchAll(sa,qId,pId){
+  const token=await getToken(sa);
+  const idxQ=await shGet(token,extractId(qId),'ARQUIVOS');
+  const idxP=await shGet(token,extractId(pId),'ARQUIVOS');
+  const actQ=idxQ.filter(r=>isYes(r['ATIVO']));
+  const actP=idxP.filter(r=>isYes(r['ATIVO']));
+  const ymSet=new Set();let qa=[],pa=[];
+
+  for(const row of actQ){
+    const sid=extractId(row['URL']||'');if(!sid)continue;
+    try{
+      const rows=await shGet(token,sid,'GERAL');
+      rows.forEach(r=>{
+        // coluna GRAVIDADE: pega qualquer chave que começa com GRAVIDADE (ex: "GRAVIDADE SIMPLIFICADA")
+        const gravKey=Object.keys(r).find(k=>k.toUpperCase().startsWith('GRAVIDADE'))||'GRAVIDADE';
+        r.VISTORIADOR=up(r['VISTORIADOR']||r['VISTORIADORES']||'');
+        r.UNIDADE=up(r['UNIDADE']||r['CIDADE']||'');
+        r.ERRO=up(r['ERRO']||r['ERROS']||'');
+        r.GRAVIDADE=up(r[gravKey]||'');
+        r.ANALISTA=up(r['ANALISTA']||'');
+        r.PLACA=up(r['PLACA']||'');
+        r.OBS=r['OBS']||r['OBSERVACAO']||r['OBSERVAÇÃO']||'';
+        r.EMPRESA=up(r['EMPRESA']||r['MARCA']||'');
+        r.TEMPO_CASA=up(r['TEMPO_CASA']||r['TEMPO DE CASA']||'');
+        const d=parseDate(r['DATA']);if(d){r.__D=d;r.__YM=toYM(d);ymSet.add(r.__YM);}
+      });
+      // Filtro EMPRESA === VELOX (idêntico ao Python):
+      // se QUALQUER linha da planilha tem EMPRESA preenchida → filtra só VELOX
+      const hasEmpresaCol=rows.some(r=>r.EMPRESA&&r.EMPRESA.trim()!=='');
+      qa=qa.concat(rows.filter(r=>{
+        if(hasEmpresaCol){
+          // linha com EMPRESA preenchida e diferente de VELOX → fora
+          if(r.EMPRESA&&r.EMPRESA.trim()!==''&&r.EMPRESA!=='VELOX')return false;
+          // linha com EMPRESA vazia quando a coluna existe → também fora (não é VELOX)
+          if(!r.EMPRESA||r.EMPRESA.trim()==='')return false;
+        }
+        return r.VISTORIADOR&&r.ERRO;
+      }));
+    }catch(e){console.warn('Q:',sid,e.message);}
+  }
+
+  for(const row of actP){
+    const sid=extractId(row['URL']||'');if(!sid)continue;
+    try{
+      const sh=await firstSheet(token,sid),rows=await shGet(token,sid,sh);
+      rows.forEach(r=>{
+        r.UNIDADE=up(r['UNIDADE']||'');
+        r.VISTORIADOR=up(r['PERITO']||'')||up(r['DIGITADOR']||'');
+        r.CHASSI=up(r['CHASSI']||'');
+        const d=parseDate(r['DATA']);if(d){r.__DATA__=d;ymSet.add(toYM(d));}
+      });
+      const seen=new Set();
+      rows.forEach(r=>{if(!r.CHASSI){r.IS_REV=0;return;}r.IS_REV=seen.has(r.CHASSI)?1:0;seen.add(r.CHASSI);});
+      pa=pa.concat(rows.filter(r=>r.VISTORIADOR&&r.__DATA__));
+    }catch(e){console.warn('P:',sid,e.message);}
+  }
+
+  G.qualRows=qa;G.prodRows=pa;G.yms=Array.from(ymSet).filter(Boolean).sort();
+  document.getElementById('dash-sub').textContent=`${G.yms.length} meses · ${G.qualRows.length.toLocaleString('pt-BR')} registros de qualidade · atualizado ${new Date().toLocaleTimeString('pt-BR')}`;
+}
+
+// ═══════════════════════════════════════════════
+// FILTER UI INIT
+// ═══════════════════════════════════════════════
+function msHTML(id,items,allChecked=true){
+  const el=document.getElementById(id);
+  el.innerHTML=items.map(v=>`<label class="ms-item"><input type="checkbox" value="${v}" ${allChecked?'checked':''}> ${v}</label>`).join('');
+}
+function msValues(id){return Array.from(document.querySelectorAll(`#${id} input:checked`)).map(e=>e.value);}
+
+function initFilters(){
+  // months
+  msHTML('ms-meses',G.yms.map(m=>`${m.slice(5)}/${m.slice(0,4)}`));
+  // check only latest by default
+  document.querySelectorAll('#ms-meses input').forEach((el,i,arr)=>{el.checked=(i===arr.length-1);});
+
+  // set date range for current month
+  const lastYm=G.yms[G.yms.length-1]||'';
+  if(lastYm){
+    const y=+lastYm.slice(0,4),mo=+lastYm.slice(5)-1;
+    const first=new Date(y,mo,1),last=new Date(y,mo+1,0);
+    document.getElementById('f-dini').value=dateStr(first);
+    document.getElementById('f-dfim').value=dateStr(last);
+  }
+
+  // unidades & vistoriadores from all data
+  const unids=[...new Set(G.qualRows.map(r=>r.UNIDADE).filter(Boolean))].sort();
+  const vists=[...new Set(G.qualRows.map(r=>r.VISTORIADOR).filter(Boolean))].sort();
+  msHTML('ms-unids',unids,true);
+  msHTML('ms-vists',vists,false);  // none pre-selected = all
+}
+
+// ═══════════════════════════════════════════════
+// APPLY FILTERS & RENDER
+// ═══════════════════════════════════════════════
+function applyFilters(){
+  // selected months → YM codes
+  const selMonthLabels=msValues('ms-meses');
+  const ymMap={};G.yms.forEach(m=>ymMap[`${m.slice(5)}/${m.slice(0,4)}`]=m);
+  const selYms=new Set(selMonthLabels.map(l=>ymMap[l]).filter(Boolean));
+  if(!selYms.size){document.getElementById('dash-error').innerHTML='<div class="alerr">⚠️ Selecione pelo menos 1 mês.</div>';return;}
+  document.getElementById('dash-error').innerHTML='';
+
+  // date range
+  const dIni=parseDate(document.getElementById('f-dini').value);
+  const dFim=parseDate(document.getElementById('f-dfim').value);
+
+  // unidades / vistoriadores
+  const selUnids=msValues('ms-unids');
+  const selVists=msValues('ms-vists');
+  const perfil=document.getElementById('f-perfil').value;
+
+  // filter quality
+  let qv=G.qualRows.filter(r=>r.__YM&&selYms.has(r.__YM));
+  if(dIni&&dFim) qv=qv.filter(r=>r.__D&&r.__D>=dIni&&r.__D<=dFim);
+  else if(dIni)  qv=qv.filter(r=>r.__D&&r.__D>=dIni);
+  else if(dFim)  qv=qv.filter(r=>r.__D&&r.__D<=dFim);
+  if(selUnids.length) qv=qv.filter(r=>selUnids.includes(r.UNIDADE));
+  if(selVists.length) qv=qv.filter(r=>selVists.includes(r.VISTORIADOR));
+  if(perfil==='Novatos')   qv=qv.filter(r=>r.TEMPO_CASA==='NOVATO');
+  if(perfil==='Veteranos') qv=qv.filter(r=>r.TEMPO_CASA==='VETERANO');
+
+  // filter production
+  let pv=G.prodRows.filter(r=>r.__DATA__&&selYms.has(toYM(r.__DATA__)));
+  if(dIni&&dFim) pv=pv.filter(r=>r.__DATA__>=dIni&&r.__DATA__<=dFim);
+  else if(dIni)  pv=pv.filter(r=>r.__DATA__>=dIni);
+  else if(dFim)  pv=pv.filter(r=>r.__DATA__<=dFim);
+  if(selUnids.length) pv=pv.filter(r=>selUnids.includes(r.UNIDADE));
+  if(selVists.length) pv=pv.filter(r=>selVists.includes(r.VISTORIADOR));
+  if(perfil!=='Todos'){const pvists=new Set(qv.map(r=>r.VISTORIADOR));pv=pv.filter(r=>pvists.has(r.VISTORIADOR));}
+
+  VIEW={qualRows:qv,prodRows:pv,dIni,dFim,selYms:Array.from(selYms).sort()};
+  renderAll();
+  // populate detail selects
+  populateDetSelects(qv);
+}
+
+function populateDetSelects(qv){
+  const opts=(arr,id)=>{const el=document.getElementById(id);const u=[...new Set(arr)].sort();el.innerHTML='<option value="">Todos</option>'+u.map(v=>`<option>${v}</option>`).join('');};
+  opts(qv.map(r=>r.ERRO).filter(Boolean),'det-erro');
+  opts(qv.map(r=>r.GRAVIDADE).filter(Boolean),'det-grav');
+  opts(qv.map(r=>r.ANALISTA).filter(Boolean),'det-analista');
+}
+
+// ═══════════════════════════════════════════════
+// RENDER ALL
+// ═══════════════════════════════════════════════
+function renderAll(){
+  const {qualRows:qv,prodRows:pv}=VIEW;
+  const vRows=buildVist(qv,pv);
+  renderKPIs(qv,pv,vRows);
+  renderHojeOntem(qv);
+  renderCharts(qv,pv);
+  renderVistoriador(qv,vRows);
+  renderRankings(qv,pv,vRows);
+  renderTendencia(qv,pv);
+  renderDetalhe();
+  renderFraude(qv);
+  renderHistorico();
+}
+
+// ───── KPIs ─────────────────────────────────
+function renderKPIs(qv,pv,vRows){
+  const te=qv.length,tgg=qv.filter(r=>isGG(r.GRAVIDADE)).length;
+  const tv=new Set(qv.map(r=>r.VISTORIADOR)).size,tb=pv.length;
+  const txG=tb?(te/tb)*100:null,txGG=tb?(tgg/tb)*100:null,mv=tv?te/tv:0;
+  const ggM={};qv.filter(r=>isGG(r.GRAVIDADE)).forEach(r=>{ggM[r.VISTORIADOR]=(ggM[r.VISTORIADOR]||0)+1;});
+  const v5gg=Object.values(ggM).filter(v=>v>=5).length;
+  const fora=vRows.filter(r=>r.pE!=null&&r.pE>META_ERRO).length;
+
+  // prev month comparison
+  const {dIni,dFim}=VIEW;
+  let prevQv=[];
+  if(dIni&&dFim){
+    const pi=new Date(dIni);pi.setMonth(pi.getMonth()-1);
+    const pf=new Date(dFim);pf.setMonth(pf.getMonth()-1);
+    prevQv=G.qualRows.filter(r=>r.__D&&r.__D>=pi&&r.__D<=pf);
+  }
+  const pte=prevQv.length,ptgg=prevQv.filter(r=>isGG(r.GRAVIDADE)).length;
+  function delta(c,p){if(!p)return null;return((c-p)/p*100);}
+  function dbadge(c,p,lbl){const d=delta(c,p);if(d===null)return'';const col=d>0?'#ef4444':d<0?'#22c55e':'#7c839e';const sign=d>0?'↑':'↓';return`<span class="kb" style="background:${col}18;color:${col};border:1px solid ${col}33">${sign}${Math.abs(d).toFixed(1)}% vs mês ant.</span>`;}
+
+  // projections
+  let projTotal='—',projGG='—';
+  if(dIni&&dFim){
+    const today=new Date();const ym=VIEW.selYms[VIEW.selYms.length-1]||'';
+    if(ym){
+      const y=+ym.slice(0,4),mo=+ym.slice(5)-1;
+      const ms=new Date(y,mo,1),me=new Date(y,mo+1,0);
+      const dp=bizDays(ms,dFim<me?dFim:me),dt=bizDays(ms,me);
+      if(dp>0){projTotal=fmtN(Math.round(te/dp*dt));projGG=fmtN(Math.round(tgg/dp*dt));}
+    }
+  }
+
+  const cards=[
+    {l:'Total de Erros',v:fmtN(te),b:dbadge(te,pte),c:'#ff6b5e'},
+    {l:'Erros Grave+Gravíssimo',v:fmtN(tgg),b:dbadge(tgg,ptgg),c:fc(farol(txGG,true))},
+    {l:'Taxa de Erro (bruta)',v:txG!=null?fmtP(txG):'—',b:farol(txG),c:fc(farol(txG))},
+    {l:'% Erro GG (bruta)',v:txGG!=null?fmtP(txGG):'—',b:farol(txGG,true),c:fc(farol(txGG,true))},
+    {l:'Vistorias Brutas',v:fmtN(tb),b:null,c:'#e8eaf0'},
+    {l:'Vistoriadores Avaliados',v:fmtN(tv),b:null,c:'#e8eaf0'},
+    {l:'Média Erros/Vistoriador',v:mv.toFixed(1).replace('.',','),b:null,c:'#e8eaf0'},
+    {l:'Vistoriadores c/ ≥5 GG',v:fmtN(v5gg),b:v5gg>0?'⚠️ Atenção':'✅ Ok',c:v5gg>0?'#ef4444':'#22c55e'},
+    {l:'Fora da Meta (%Erro)',v:fmtN(fora),b:fora>0?'🔴 Atenção':'🟢 Ok',c:fora>0?'#ef4444':'#22c55e'},
+    {l:'Projeção Erros (mês)',v:projTotal,b:null,c:'#f5a623'},
+    {l:'Projeção Erros GG (mês)',v:projGG,b:null,c:'#f5a623'},
+  ];
+  document.getElementById('kpi-cards').innerHTML=cards.map(c=>`<div class="kc"><div class="kl">${c.l}</div><div class="kv" style="color:${c.c}">${c.v}</div>${c.b?`<span class="kb" style="color:${c.c};background:${c.c}18;border:1px solid ${c.c}33">${c.b}</span>`:''}</div>`).join('');
+}
+
+// ───── HOJE vs ONTEM ─────────────────────────
+function renderHojeOntem(qv){
+  const today=new Date();today.setHours(0,0,0,0);
+  const yesterday=new Date(today);yesterday.setDate(yesterday.getDate()-1);
+  const hojeRows=qv.filter(r=>r.__D&&r.__D.toDateString()===today.toDateString());
+  const ontemRows=G.qualRows.filter(r=>r.__D&&r.__D.toDateString()===yesterday.toDateString());
+  const h=hojeRows.length,o=ontemRows.length,d=h-o;
+  const status=d<0?'✅ Melhorou':d>0?'❌ Piorou':'➡️ Igual';
+  const col=d<0?'#22c55e':d>0?'#ef4444':'#7c839e';
+  document.getElementById('hoje-ontem').innerHTML=`
+    <div class="chart-row c3">
+      <div class="kc"><div class="kl">Erros HOJE (até agora)</div><div class="kv" style="color:var(--soft)">${fmtN(h)}</div><span class="kb" style="background:${col}18;color:${col};border:1px solid ${col}33">Δ ${d>0?'+':''}${d} vs ontem</span></div>
+      <div class="kc"><div class="kl">Erros ONTEM</div><div class="kv">${fmtN(o)}</div></div>
+      <div class="kc"><div class="kl">Tendência</div><div class="kv" style="color:${col};font-size:20px">${status}</div></div>
+    </div>`;
+}
+
+// ───── CHARTS ────────────────────────────────
+function mkChart(id,type,labels,datasets,extra={}){
+  if(_charts[id]){_charts[id].destroy();}_charts[id]=null;
+  const ctx=document.getElementById(id);if(!ctx)return;
+  _charts[id]=new Chart(ctx,{type,data:{labels,datasets},options:{responsive:true,plugins:{legend:{display:datasets.length>1,labels:{color:'#7c839e',font:{size:10,family:"'JetBrains Mono'"}}},tooltip:{backgroundColor:'#1e2336',titleColor:'#e8eaf0',bodyColor:'#7c839e'}},scales:type!=='doughnut'&&type!=='pie'?{x:{ticks:{color:'#7c839e',font:{size:9}},grid:{color:'#2a305020'}},y:{ticks:{color:'#7c839e',font:{size:9}},grid:{color:'#2a305040'}}}:{},animation:{duration:400},...extra}});
+}
+
+function renderCharts(qv,pv){
+  // ── Unidade total ──
+  const uT={};qv.forEach(r=>{if(r.UNIDADE)uT[r.UNIDADE]=(uT[r.UNIDADE]||0)+1;});
+  const uL=Object.keys(uT).sort((a,b)=>uT[b]-uT[a]);
+  mkChart('ch-unid-total','bar',uL,[{label:'Erros',data:uL.map(l=>uT[l]),backgroundColor:'#e83a2f99',borderColor:'#e83a2f',borderWidth:1,borderRadius:4}]);
+
+  // ── Unidade GG ──
+  const uGG={};qv.filter(r=>isGG(r.GRAVIDADE)).forEach(r=>{if(r.UNIDADE)uGG[r.UNIDADE]=(uGG[r.UNIDADE]||0)+1;});
+  const uGL=Object.keys(uGG).sort((a,b)=>uGG[b]-uGG[a]);
+  mkChart('ch-unid-gg','bar',uGL,[{label:'Erros GG',data:uGL.map(l=>uGG[l]),backgroundColor:'#ef444499',borderColor:'#ef4444',borderWidth:1,borderRadius:4}]);
+
+  // ── Gravidade ──
+  const gM={};qv.forEach(r=>{if(r.GRAVIDADE)gM[r.GRAVIDADE]=(gM[r.GRAVIDADE]||0)+1;});
+  const gL=Object.keys(gM).sort((a,b)=>gM[b]-gM[a]);
+  mkChart('ch-grav','bar',gL,[{label:'QTD',data:gL.map(l=>gM[l]),backgroundColor:gL.map((_,i)=>COLORS[i%COLORS.length]+'99'),borderColor:gL.map((_,i)=>COLORS[i%COLORS.length]),borderWidth:1,borderRadius:4}]);
+
+  // ── DOW ──
+  const dowM=[0,0,0,0,0,0,0];
+  qv.forEach(r=>{if(r.__D){const d=r.__D.getDay();dowM[d===0?6:d-1]++;}});
+  mkChart('ch-dow','bar',DOW,[{label:'Erros',data:dowM,backgroundColor:'#a855f799',borderColor:'#a855f7',borderWidth:1,borderRadius:4}]);
+
+  // ── Top 5 Grave ──
+  const grM={};qv.filter(r=>stripAcc(r.GRAVIDADE)==='GRAVE').forEach(r=>{if(r.ERRO)grM[r.ERRO]=(grM[r.ERRO]||0)+1;});
+  const grT=Object.entries(grM).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  if(grT.length)mkChart('ch-top-grave','bar',grT.map(([k])=>k.length>18?k.slice(0,17)+'…':k),[{label:'QTD',data:grT.map(([,v])=>v),backgroundColor:'#f5a62399',borderColor:'#f5a623',borderWidth:1,borderRadius:4}]);
+
+  // ── Top 5 Gravíssimo ──
+  const ggM={};qv.filter(r=>stripAcc(r.GRAVIDADE).startsWith('GRAVIS')&&stripAcc(r.GRAVIDADE)!=='GRAVE').forEach(r=>{if(r.ERRO)ggM[r.ERRO]=(ggM[r.ERRO]||0)+1;});
+  const ggT=Object.entries(ggM).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  if(ggT.length)mkChart('ch-top-gravi','bar',ggT.map(([k])=>k.length>18?k.slice(0,17)+'…':k),[{label:'QTD',data:ggT.map(([,v])=>v),backgroundColor:'#ef444499',borderColor:'#ef4444',borderWidth:1,borderRadius:4}]);
+
+  // ── Pareto ──
+  const eM2={};qv.forEach(r=>{if(r.ERRO)eM2[r.ERRO]=(eM2[r.ERRO]||0)+1;});
+  const eS=Object.entries(eM2).sort((a,b)=>b[1]-a[1]).slice(0,15);
+  const eTotal=eS.reduce((s,[,v])=>s+v,0);let acc=0;
+  const accD=eS.map(([,v])=>{acc+=v;return+(acc/eTotal*100).toFixed(1);});
+  mkChart('ch-pareto','bar',eS.map(([k])=>k.length>16?k.slice(0,15)+'…':k),[
+    {type:'bar',label:'QTD',data:eS.map(([,v])=>v),backgroundColor:'#3b82f699',borderColor:'#3b82f6',borderWidth:1,borderRadius:4,yAxisID:'y'},
+    {type:'line',label:'% Acum.',data:accD,borderColor:'#e83a2f',backgroundColor:'transparent',pointBackgroundColor:'#e83a2f',tension:.3,yAxisID:'y1'}
+  ],{scales:{x:{ticks:{color:'#7c839e',font:{size:9}},grid:{color:'#2a305020'}},y:{ticks:{color:'#7c839e',font:{size:9}},grid:{color:'#2a305040'}},y1:{position:'right',min:0,max:100,ticks:{color:'#e83a2f',font:{size:9},callback:v=>v+'%'},grid:{display:false}}}});
+
+  // ── Heatmap ──
+  renderHeatmap(qv,pv);
+
+  // ── Analista ──
+  const aT={},aGG={};
+  qv.forEach(r=>{if(!r.ANALISTA)return;aT[r.ANALISTA]=(aT[r.ANALISTA]||0)+1;if(isGG(r.GRAVIDADE))aGG[r.ANALISTA]=(aGG[r.ANALISTA]||0)+1;});
+  const aL=Object.keys(aT).sort((a,b)=>((aGG[b]||0)/aT[b])-((aGG[a]||0)/aT[a]));
+  const aD=aL.map(a=>aT[a]?+((aGG[a]||0)/aT[a]*100).toFixed(1):0);
+  if(aL.length)mkChart('ch-analista','bar',aL,[{label:'% GG',data:aD,backgroundColor:'#06b6d499',borderColor:'#06b6d4',borderWidth:1,borderRadius:4}]);
+}
+
+function renderHeatmap(qv,pv){
+  const el=document.getElementById('heatmap-box');
+  const uniqs=[...new Set(qv.map(r=>r.UNIDADE).filter(Boolean))].sort();
+  const gravs=[...new Set(qv.map(r=>r.GRAVIDADE).filter(Boolean))].sort();
+  if(!uniqs.length||!gravs.length){el.innerHTML='<div style="padding:14px;color:var(--muted);font-size:12px">Sem dados UNIDADE/GRAVIDADE.</div>';return;}
+  const map={};qv.forEach(r=>{const k=r.UNIDADE+'||'+r.GRAVIDADE;map[k]=(map[k]||0)+1;});
+  const maxVal=Math.max(1,...Object.values(map));
+  let html=`<table><thead><tr><th>Unidade</th>${gravs.map(g=>`<th>${g}</th>`).join('')}</tr></thead><tbody>`;
+  uniqs.forEach(u=>{
+    html+=`<tr><td style="font-weight:600;white-space:nowrap">${u}</td>`;
+    gravs.forEach(g=>{
+      const v=map[u+'||'+g]||0;
+      const alpha=v>0?Math.max(0.15,v/maxVal):0;
+      const bg=`rgba(232,58,47,${alpha})`;
+      html+=`<td style="text-align:center;background:${bg};color:${v>0?'var(--text)':'var(--muted)'}">${v||'—'}</td>`;
+    });
+    html+='</tr>';
+  });
+  html+='</tbody></table>';
+  el.innerHTML=html;
+}
+
+// ───── VISTORIADOR ───────────────────────────
+function renderVistoriador(qv,vRows){
+  // tabela % erro
+  document.getElementById('tbl-vist').innerHTML=vRows.length
+    ?`<table><thead><tr><th>Cidade</th><th>Vistoriador</th><th>Vist.</th><th>Rev.</th><th>Líq.</th><th>Erros</th><th>GG</th><th>%Erro</th><th>%Erro GG</th></tr></thead><tbody>${vRows.map(r=>{const f=farol(r.pE),fg=farol(r.pGG,true);return`<tr><td style="color:var(--muted)">${r.cidade||'—'}</td><td style="font-weight:600">${r.v}</td><td>${fmtN(r.vist)}</td><td>${fmtN(r.rev)}</td><td>${fmtN(r.liq)}</td><td>${fmtN(r.erros)}</td><td>${fmtN(r.errosGG)}</td><td>${pill(f+' '+fmtP(r.pE),fc(f))}</td><td>${pill(fg+' '+fmtP(r.pGG),fc(fg))}</td></tr>`;}).join('')}</tbody></table>`
+    :'<div style="padding:14px;color:var(--muted);font-size:12px">Sem dados no período selecionado.</div>';
+
+  // reincidência
+  const rM={};qv.forEach(r=>{if(!r.VISTORIADOR||!r.ERRO)return;const k=r.VISTORIADOR+'||'+r.ERRO;rM[k]=(rM[k]||0)+1;});
+  const rRows=Object.entries(rM).filter(([,v])=>v>=3).sort((a,b)=>b[1]-a[1]);
+  document.getElementById('tbl-reinc').innerHTML=rRows.length
+    ?`<table><thead><tr><th>Vistoriador</th><th>Erro</th><th>QTD</th></tr></thead><tbody>${rRows.map(([k,v])=>{const[vs,er]=k.split('||');return`<tr><td style="font-weight:600">${vs}</td><td>${er}</td><td style="color:#f5a623;font-weight:700">${v}</td></tr>`;}).join('')}</tbody></table>`
+    :'<div style="padding:14px;color:var(--muted);font-size:12px">Nenhuma reincidência ≥3 no período.</div>';
+}
+
+// ───── RANKINGS ──────────────────────────────
+function rankHTML(vRows,asc){
+  const s=[...vRows].filter(r=>r.pE!=null&&r.vist>0).sort((a,b)=>asc?a.pE-b.pE:b.pE-a.pE).slice(0,5);
+  if(!s.length)return'<div style="padding:14px;color:var(--muted);font-size:12px">Sem dados.</div>';
+  const mx=Math.max(...s.map(r=>r.pE));
+  return`<table><thead><tr><th>#</th><th>Vistoriador</th><th>Vist.</th><th>Erros</th><th style="min-width:150px">%Erro</th></tr></thead><tbody>${s.map((r,i)=>{const f=farol(r.pE),c=fc(f),b=mx>0?(r.pE/mx)*100:0;return`<tr><td style="color:var(--muted);width:24px">${i+1}</td><td style="font-weight:600">${r.v}</td><td>${fmtN(r.vist)}</td><td>${fmtN(r.erros)}</td><td><div style="display:flex;align-items:center;gap:6px">${pill(f+' '+fmtP(r.pE),c)}<div class="mini-bar"><div class="mbf" style="width:${b}%;background:${c}"></div></div></div></td></tr>`;}).join('')}</tbody></table>`;
+}
+
+function renderRankings(qv,pv,vRows){
+  document.getElementById('tbl-best').innerHTML=rankHTML(vRows,true);
+  document.getElementById('tbl-worst').innerHTML=rankHTML(vRows,false);
+
+  // comparativo mês anterior
+  const {dIni,dFim}=VIEW;
+  let pi=null,pf=null;
+  if(dIni&&dFim){pi=new Date(dIni);pi.setMonth(pi.getMonth()-1);pf=new Date(dFim);pf.setMonth(pf.getMonth()-1);}
+  document.getElementById('comp-cap').textContent=pi&&pf?`Atual: ${fmtDate(dIni)}–${fmtDate(dFim)}  ·  Anterior: ${fmtDate(pi)}–${fmtDate(pf)}`:'';
+  if(pi&&pf){
+    const prevQ=G.qualRows.filter(r=>r.__D&&r.__D>=pi&&r.__D<=pf);
+    const prevP=G.prodRows.filter(r=>r.__DATA__&&r.__DATA__>=pi&&r.__DATA__<=pf);
+    const prevRows=buildVist(prevQ,prevP);
+    const pm={};prevRows.forEach(r=>{pm[r.v]=r;});
+    const cm={};vRows.forEach(r=>{cm[r.v]=r;});
+    const all=new Set([...Object.keys(cm),...Object.keys(pm)]);
+    const comp=Array.from(all).map(v=>{
+      const c=cm[v]||{erros:0},p=pm[v]||{erros:0};
+      const d=c.erros-p.erros,vp=p.erros>0?((d/p.erros)*100):null;
+      return{v,ea:c.erros,ep:p.erros,d,vp,s:d<0?'✅ Melhorou':d>0?'❌ Piorou':'➡️ Igual'};
+    }).sort((a,b)=>b.ea-a.ea);
+    document.getElementById('tbl-comp').innerHTML=`<table><thead><tr><th>Vistoriador</th><th>Atual</th><th>Anterior</th><th>Δ</th><th>Var%</th><th>Status</th></tr></thead><tbody>${comp.map(r=>{const col=r.d<0?'#22c55e':r.d>0?'#ef4444':'#7c839e';return`<tr><td style="font-weight:600">${r.v}</td><td>${fmtN(r.ea)}</td><td>${fmtN(r.ep)}</td><td style="color:${col};font-weight:700">${r.d>0?'+':''}${r.d}</td><td style="color:${col}">${r.vp!=null?r.vp.toFixed(1).replace('.',',')+'\%':'—'}</td><td>${pill(r.s,col)}</td></tr>`;}).join('')}</tbody></table>`;
+  }else{document.getElementById('tbl-comp').innerHTML='<div style="padding:14px;color:var(--muted);font-size:12px">Selecione um intervalo de datas para ver o comparativo.</div>';}
+
+  // comparativo semanal
+  renderSemanal(qv,pv);
+}
+
+function renderSemanal(qv,pv){
+  const {dIni,dFim,selYms}=VIEW;
+  if(!dIni||!dFim){document.getElementById('tbl-semanal').innerHTML='<div style="padding:14px;color:var(--muted);font-size:12px">Selecione datas para ver o comparativo semanal.</div>';return;}
+  const ym=selYms[selYms.length-1]||'';
+  if(!ym){document.getElementById('tbl-semanal').innerHTML='';return;}
+  const y=+ym.slice(0,4),mo=+ym.slice(5)-1;
+  const mStart=new Date(y,mo,1),mEnd=new Date(y,mo+1,0);
+  const semanas=[];let curEnd=new Date(Math.min(dFim,mEnd));
+  for(let i=0;i<4;i++){
+    const curStart=new Date(curEnd);curStart.setDate(curStart.getDate()-6);
+    const s=new Date(Math.max(curStart,mStart)),e=new Date(curEnd);
+    if(s>e||e<mStart)break;
+    semanas.unshift({s,e});
+    curEnd=new Date(s);curEnd.setDate(curEnd.getDate()-1);
+    if(curEnd<mStart)break;
+  }
+  if(semanas.length<2){document.getElementById('tbl-semanal').innerHTML='<div style="padding:14px;color:var(--muted);font-size:12px">Menos de 2 semanas no mês para comparar.</div>';return;}
+
+  const semsData=semanas.map(({s,e})=>{
+    const sq=qv.filter(r=>r.__D&&r.__D>=s&&r.__D<=e);
+    const sp=pv.filter(r=>r.__DATA__&&r.__DATA__>=s&&r.__DATA__<=e);
+    const vst=buildVist(sq,sp);
+    const m={};vst.forEach(r=>{m[r.v]=r;});return{label:`${s.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})}–${e.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})}`,map:m};
+  });
+
+  const allV=new Set();semsData.forEach(sd=>Object.keys(sd.map).forEach(v=>allV.add(v)));
+  const rows=Array.from(allV).map(v=>{
+    const d={v};
+    semsData.forEach((sd,i)=>{const r=sd.map[v];d[`e${i}`]=r?r.erros:0;d[`p${i}`]=r?r.pE:null;});
+    return d;
+  }).sort((a,b)=>{const k=`p${semsData.length-1}`;return(b[k]??-1)-(a[k]??-1);});
+
+  const hdrs=semsData.map((sd,i)=>`<th style="min-width:110px">S${i+1}: ${sd.label}</th>`).join('');
+  const bdy=rows.map(r=>{
+    const cells=semsData.map((_,i)=>{const f=farol(r[`p${i}`]),c=fc(f);return`<td>${pill(f+' '+fmtP(r[`p${i}`]),c)}<br><span style="color:var(--muted);font-size:9px">${r[`e${i}`]} erros</span></td>`;}).join('');
+    let trend='';
+    if(semsData.length>=2){const p1=r[`p${semsData.length-2}`],p2=r[`p${semsData.length-1}`];if(p1!=null&&p2!=null){const d=p2-p1;trend=d<0?'↓ Melhorou':d>0?'↑ Piorou':'↔';}}
+    return`<tr><td style="font-weight:600;white-space:nowrap">${r.v}</td>${cells}<td style="color:var(--muted)">${trend}</td></tr>`;
+  }).join('');
+  document.getElementById('tbl-semanal').innerHTML=`<table><thead><tr><th>Vistoriador</th>${hdrs}<th>Tendência</th></tr></thead><tbody>${bdy}</tbody></table>`;
+}
+
+// ───── TENDÊNCIA ─────────────────────────────
+function renderTendencia(qv,pv){
+  const {selYms,dFim}=VIEW;
+  const ym=selYms[selYms.length-1]||'';if(!ym){document.getElementById('tbl-tend').innerHTML='';return;}
+  const y=+ym.slice(0,4),mo=+ym.slice(5)-1;
+  const mStart=new Date(y,mo,1),mEnd=new Date(y,mo+1,0);
+  const curEnd=dFim&&dFim<mEnd?dFim:mEnd;
+  const dp=bizDays(mStart,curEnd),dt=bizDays(mStart,mEnd);
+
+  const eM={};qv.filter(r=>r.__D&&r.__D>=mStart&&r.__D<=curEnd).forEach(r=>{if(r.VISTORIADOR)eM[r.VISTORIADOR]=(eM[r.VISTORIADOR]||0)+1;});
+  const rows=Object.entries(eM).map(([v,e])=>{
+    const epd=dp>0?e/dp:0,proj=Math.round(epd*dt);
+    return{v,e,epd,dp,dt,proj};
+  }).sort((a,b)=>b.proj-a.proj);
+
+  document.getElementById('tbl-tend').innerHTML=rows.length
+    ?`<table><thead><tr><th>Vistoriador</th><th>Erros MTD</th><th>Erros/dia</th><th>Dias passados</th><th>Dias mês</th><th>Projeção (mês)</th></tr></thead><tbody>${rows.map(r=>`<tr><td style="font-weight:600">${r.v}</td><td>${fmtN(r.e)}</td><td>${r.epd.toFixed(2).replace('.',',')}</td><td>${r.dp}</td><td>${r.dt}</td><td style="font-weight:700;color:#f5a623">${fmtN(r.proj)}</td></tr>`).join('')}</tbody></table>`
+    :'<div style="padding:14px;color:var(--muted);font-size:12px">Sem dados de erros no período.</div>';
+}
+
+// ───── DETALHAMENTO ──────────────────────────
+function renderDetalhe(){
+  const {qualRows}=VIEW;
+  const placa=document.getElementById('det-placa').value.trim().toUpperCase();
+  const erro=document.getElementById('det-erro').value;
+  const grav=document.getElementById('det-grav').value;
+  const analista=document.getElementById('det-analista').value;
+
+  let rows=[...qualRows];
+  if(placa) rows=rows.filter(r=>r.PLACA.includes(placa));
+  if(erro)  rows=rows.filter(r=>r.ERRO===erro);
+  if(grav)  rows=rows.filter(r=>r.GRAVIDADE===grav);
+  if(analista) rows=rows.filter(r=>r.ANALISTA===analista);
+
+  rows.sort((a,b)=>{if(!a.__D)return 1;if(!b.__D)return -1;return a.__D-b.__D;});
+  document.getElementById('tbl-detalhe').innerHTML=rows.length
+    ?`<table><thead><tr><th>Data</th><th>Unidade</th><th>Vistoriador</th><th>Placa</th><th>Erro</th><th>Gravidade</th><th>Analista</th><th>Obs</th><th>Perfil</th></tr></thead><tbody>${rows.map(r=>`<tr><td style="white-space:nowrap">${fmtDate(r.__D)}</td><td>${r.UNIDADE||'—'}</td><td style="font-weight:600">${r.VISTORIADOR||'—'}</td><td>${r.PLACA||'—'}</td><td>${r.ERRO||'—'}</td><td>${r.GRAVIDADE||'—'}</td><td>${r.ANALISTA||'—'}</td><td style="max-width:180px;overflow:hidden;text-overflow:ellipsis">${r.OBS||'—'}</td><td>${r.TEMPO_CASA||'—'}</td></tr>`).join('')}</tbody></table>`
+    :'<div style="padding:14px;color:var(--muted);font-size:12px">Nenhum registro com esses filtros.</div>';
+}
+
+// ───── FRAUDE ────────────────────────────────
+function renderFraude(qv){
+  const rows=qv.filter(r=>up(r.ERRO)==='TENTATIVA DE FRAUDE').sort((a,b)=>a.__D-b.__D);
+  document.getElementById('fraude-content').innerHTML=rows.length
+    ?`<div class="tw"><table><thead><tr><th>Data</th><th>Unidade</th><th>Vistoriador</th><th>Placa</th><th>Gravidade</th><th>Analista</th><th>Obs</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${fmtDate(r.__D)}</td><td>${r.UNIDADE||'—'}</td><td style="font-weight:600">${r.VISTORIADOR||'—'}</td><td>${r.PLACA||'—'}</td><td>${r.GRAVIDADE||'—'}</td><td>${r.ANALISTA||'—'}</td><td>${r.OBS||'—'}</td></tr>`).join('')}</tbody></table></div>`
+    :'<div class="alok">✅ Nenhum registro de Tentativa de Fraude no período selecionado.</div>';
+}
+
+// ───── HISTÓRICO ─────────────────────────────
+function setCrit(c){
+  currentCrit=c;
+  ['total','any'].forEach(id=>{const el=document.getElementById('crit-'+id);el.style.borderColor=id===c?'var(--accent)':'';el.style.color=id===c?'var(--accent)':'';});
+  renderHistorico();
+}
+
+function renderHistorico(){
+  const el=document.getElementById('tbl-hist');
+  const {qualRows:qv,prodRows:pv,selYms}=VIEW;
+  const curYm=selYms[selYms.length-1]||'';
+  const qC=qv.filter(r=>r.__YM===curYm),pC=pv.filter(r=>r.__DATA__&&toYM(r.__DATA__)===curYm);
+  const curRows=buildVist(qC,pC);
+  const fora=curRows.filter(r=>{if(!r.vist)return false;return currentCrit==='total'?(r.pE!=null&&r.pE>META_ERRO):((r.pE!=null&&r.pE>META_ERRO)||(r.pGG!=null&&r.pGG>META_GG));}).map(r=>r.v);
+  if(!fora.length){el.innerHTML='<div class="alok">✅ Nenhum colaborador fora da meta no mês/período selecionado.</div>';return;}
+  const months=G.yms.filter(m=>m<=curYm);
+  const hist=fora.map(v=>{
+    const ent={v,mf:0,m:{}};
+    months.forEach(m=>{
+      const qm=G.qualRows.filter(r=>r.__YM===m),pm=G.prodRows.filter(r=>r.__DATA__&&toYM(r.__DATA__)===m);
+      const tbl=buildVist(qm,pm),row=tbl.find(r=>r.v===v);
+      if(!row){ent.m[m]={p:null,f:false};return;}
+      const f=currentCrit==='total'?(row.pE!=null&&row.pE>META_ERRO):((row.pE!=null&&row.pE>META_ERRO)||(row.pGG!=null&&row.pGG>META_GG));
+      if(f)ent.mf++;ent.m[m]={p:row.pE,f};
+    });
+    return ent;
+  }).sort((a,b)=>b.mf-a.mf);
+  function sit(n){return n>=3?['🔥 Recorrente','#ef4444']:n===2?['⚠️ Atenção','#eab308']:['🆕 Entrou agora','#ff6b5e'];}
+  el.innerHTML=`<table><thead><tr><th>Vistoriador</th><th>Situação</th><th>Meses fora</th>${months.map(m=>`<th>${m.slice(5)}/${m.slice(0,4)}</th>`).join('')}</tr></thead><tbody>${hist.map(h=>{const[sl,sc]=sit(h.mf);return`<tr><td style="font-weight:600">${h.v}</td><td>${pill(sl,sc)}</td><td style="font-weight:700;color:${sc}">${h.mf}</td>${months.map(m=>{const me=h.m[m];if(!me||me.p==null)return`<td style="color:var(--muted)">—</td>`;const c=me.f?'#ef4444':'#22c55e';return`<td>${pill((me.f?'🔴':'🟢')+' '+fmtP(me.p),c)}</td>`;}).join('')}</tr>`;}).join('')}</tbody></table>`;
+}
+
+// ───── EXPORT (genérico para qualquer tabela) ────────────────────
+function exportTable(tableId,filename){
+  const tbl=document.querySelector('#'+tableId+' table');
+  if(!tbl){alert('Sem dados para exportar.');return;}
+  const rows=Array.from(tbl.querySelectorAll('tr'));
+  const csv=rows.map(tr=>Array.from(tr.querySelectorAll('th,td')).map(td=>{
+    // remove emojis e aspas problemáticas, normaliza
+    let t=td.innerText||td.textContent||'';
+    t=t.replace(/[\u{1F300}-\u{1FFFF}]/gu,'').trim();
+    return'"'+t.replace(/"/g,'""')+'"';
+  }).join(',')).join('\n');
+  const b=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=filename||'export.csv';a.click();
+}
+function exportCSV(){exportTable('tbl-vist','velox_vistoriadores.csv');}
+
+// ───── TABS ──────────────────────────────────
+const TABS=['kpi','graficos','vistoriador','rankings','tendencia','detalhe','fraude','historico'];
+function switchTab(id){
+  TABS.forEach(t=>{document.getElementById('tab-'+t).style.display=t===id?'':'none';});
+  document.querySelectorAll('.tab').forEach((el,i)=>{el.classList.toggle('active',TABS[i]===id);});
+  if(id==='graficos')setTimeout(()=>renderCharts(VIEW.qualRows,VIEW.prodRows),50);
+}
+function showSetup(){document.getElementById('dashboard').style.display='none';document.getElementById('setup-screen').style.display='';}
+</script>
+</body>
+</html>
