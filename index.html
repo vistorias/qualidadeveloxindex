@@ -318,9 +318,21 @@ input[type=checkbox]{cursor:pointer;accent-color:var(--accent);}
 // ⚙️ CONFIGURAÇÃO FIXA (preencha aqui para o usuário final não precisar configurar)
 // Deixe em branco ("") para usar a tela de login manual
 // ═══════════════════════════════════════════════
-const FIXED_SA_JSON   = "";   // Cole aqui o conteúdo do JSON da service account (string JSON)
-const FIXED_QUAL_ID   = "";   // ID ou URL da planilha índice de qualidade
-const FIXED_PROD_ID   = "";   // ID ou URL da planilha índice de produção
+const FIXED_SA_JSON   = "{
+  "type": "service_account",
+  "project_id": "spatial-dryad-450219-j2",
+  "private_key_id": "dd37fa8e548b9e942debd3eecfc0250ec3b25e16",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCnlkmpCh2V6Va+\nuzze40X8QwUMZP6+c1XBvZRfoApRQiW4njMOvPgIG0ZeCkD8FIahcdX4uOgI5rXn\nhMW9I5IZ9Ia8Iy/0UQUqbLPpmeYmM5gcI6Olstgr/48WHQLIcR5HLFQAGu24eZDo\nns5lHRFUSmcoBkU1AF/6KjLNtWkdM41V5/tWGDoMi3REA4AyiKbkuKT3JakUHfHg\njeAiRu44zEQpp0pzc9L4hSzb0mRCawyXp4XGO98ieRwMULIO+1A/Ak++eKI9F77W\n07NAdQg9jUUwE70lJ8E/ztN+r7mwSgrRhNjuVD3uED70a0GFrTUUYVLObDBqxC5l\njlJiMrwBAgMBAAECggEAMrJOlzHlsE91u94ldGG5bq4RjWXSAGggharlgyYFaP6D\nLb3BwVAeEkm5+EHO1dMZxSYMLiE1pFeyqJZsQSLNFEf6KFjWrWiDEQnwRRcW3fCW\nr9CCNWKMbYbyUKS3Dk7V837v7FY5Gqi/0vcThdgMwXx+h0eaUQXLgwCX/M3Hvhq4\nAn0qrDjPVTcutrh9/QDv6LFXspFQmk1bXuDmTsnD8tEZ/xS/uWnBDMtkqkPIQZMs\ngTk5MdtKm4MF+xpbfMIklN3mpmrHMinpIqNYf971ZLTUZLhfMy902lRc0zYceDv7\n/sHRMih/w6EFA+luJ24djsrJkHiT20ogt8UYtHPeJwKBgQDhHeNOg0mIIod7zIgq\ndRdumdpePPDYbIhc5hkwB7n7xdCn0KtK+uSoOgZaP8hoQE2BwYyKwAspOoxbj28m\nTQIa0uZJz1a7YIgnLUZZmLRn29BjYgdGjDMWx+PMwBgi49ZzPpt81NNgL4QGVHih\nQR3cDuG5FaAfY5Is+9aYUD0iJwKBgQC+k/RC0YKJDuGG5q7XQQrp+1/qFIYVzOis\nNi4KUnLUAakiLbRUJmwNLGpJHrJLU33tiR39gkMDxZhFWd0uJv53WQf+0/pf6yT2\nVlsp0vB73n2aLX08rvadfnSfJtY+06AHLm157Z3/h1YDEF9gKim5qTn/InQCxjTD\nJJk9iIkRlwKBgQCBdce36iaKZJkXp+sSx52/HDmJgnBbdicBjc4kYf0h/oPdTlKD\n3z9KQ3xNwGqHEZvBKEajsId6oVIAgb9A/n5cYLbQ8a0GOyBxr0bK1dfB9paj4Mcg\nWhYzXqbxo/L9dZtpUTLoGhipMwow/bkVuzXpzKEg6H/aLU/uELI7i8FsdwKBgAvD\nPAdHwSPOfFMEN/RnOlI4xrG+9Iux6wZ+DZdrgVTeiV7nrUKoYHDrtd+vele13obj\nuKsl+Bbqgjx9kG5Bz+Dz6M9sq/5xmAVwTQ4my9sJX309o4Y0UlpkLLSKBB06mJz4\n257z8JWN99wWjZx03cBs1nyN1tU5AJau0pp+q98fAoGAJmjB5irY3F0yKb/CXi8z\n3RTqi8Yj32vt9Xm6heB0gxUXUskD0nocoohVZN1bs02ZpS/AVbZSsCN+vsx5WiKe\nXntxevQ0eyotVLHEynlQCxwkqfO48MwimBRR+RddHl+c1g4orARQ+ufQCXmfJ+PH\nIgriaRElEEfzoKNKX3YtO10=\n-----END PRIVATE KEY-----\n",
+  "client_email": "streamlit-service@spatial-dryad-450219-j2.iam.gserviceaccount.com",
+  "client_id": "105931198762892601027",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/streamlit-service%40spatial-dryad-450219-j2.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}";   // Cole aqui o conteúdo do JSON da service account (string JSON)
+const FIXED_QUAL_ID   = "10_LeMo_IAPxYw0GegzmVEaqte36h1qaN_rXPHmMzA7g";   // ID ou URL da planilha índice de qualidade
+const FIXED_PROD_ID   = "1CPkUf5KG2wPz55cO_5T1ezTYeAlZXuy_MXgwL2jiaYw";   // ID ou URL da planilha índice de produção
 // ═══════════════════════════════════════════════
 // ═══════════════════════════════════════════════
 // CONSTANTS & STATE
